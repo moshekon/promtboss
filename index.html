@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROMPT BOSS | שלוט ב-AI, שלוט בחיים שלך</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heebo: ['Heebo', 'sans-serif'],
+            mono: ['Space Mono', 'monospace'],
+          },
+          colors: {
+            cyan: { neon: '#00d4ff' },
+            green: { neon: '#00ff88' },
+            bg: { dark: '#07070f', card: '#0e0e1a', border: '#1a1a2e' },
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --cyan: #00d4ff;
+      --green: #00ff88;
+      --bg: #07070f;
+      --card: #0e0e1a;
+      --border: #1a1a2e;
+      --text: #e8e8f0;
+      --muted: #6b6b8a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Heebo', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── GLOW EFFECTS ── */
+    .glow-cyan { box-shadow: 0 0 30px rgba(0,212,255,0.3), 0 0 60px rgba(0,212,255,0.1); }
+    .glow-green { box-shadow: 0 0 30px rgba(0,255,136,0.3); }
+    .text-cyan { color: var(--cyan); }
+    .text-green { color: var(--green); }
+
+    /* ── GRADIENT BORDER ── */
+    .grad-border {
+      position: relative;
+      border-radius: 16px;
+    }
+    .grad-border::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 17px;
+      background: linear-gradient(135deg, var(--cyan), transparent 50%, var(--green));
+      z-index: -1;
+    }
+
+    /* ── HERO ── */
+    .hero-grid {
+      background-image:
+        linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0,212,255,0.12) 0%, transparent 70%);
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    /* ── COUNTDOWN ── */
+    .countdown-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      min-width: 56px;
+      text-align: center;
+    }
+
+    /* ── CARD ── */
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(0,212,255,0.4);
+    }
+
+    /* ── FORM ── */
+    .form-input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-family: 'Heebo', sans-serif;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s;
+      text-align: right;
+    }
+    .form-input:focus { border-color: var(--cyan); }
+    .form-input::placeholder { color: var(--muted); }
+
+    /* ── CTA BUTTON ── */
+    .cta-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--cyan), #0099cc);
+      color: #07070f;
+      font-family: 'Heebo', sans-serif;
+      font-weight: 900;
+      font-size: 20px;
+      padding: 18px 36px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-btn::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.4s;
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,255,0.4); }
+    .cta-btn:hover::after { left: 100%; }
+    .cta-btn:active { transform: translateY(0); }
+
+    /* ── UPSELL MODAL ── */
+    #upsellModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(7,7,15,0.92);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #upsellModal.active { display: flex; }
+
+    .modal-box {
+      background: var(--card);
+      border: 1px solid rgba(0,255,136,0.3);
+      border-radius: 20px;
+      max-width: 520px;
+      width: 100%;
+      padding: 36px 28px;
+      position: relative;
+      animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes modalIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* ── PULSE ── */
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    .pulse-dot {
+      position: relative;
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    .pulse-dot::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 2px solid var(--green);
+      animation: pulse-ring 1.5s infinite;
+    }
+
+    /* ── TICKER ── */
+    .ticker-track {
+      display: flex;
+      gap: 60px;
+      animation: ticker 20s linear infinite;
+      white-space: nowrap;
+    }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      border-radius: 3px;
+      width: 73%;
+      animation: fillIn 1.5s ease-out;
+    }
+    @keyframes fillIn { from { width: 0%; } to { width: 73%; } }
+
+    /* ── ANIMATIONS ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── SCROLL BAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── PAYPAL BUTTON OVERRIDE ── */
+    #paypal-button-container { margin-top: 12px; }
+
+    /* ── TESTIMONIAL ── */
+    .testimonial {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 20px;
+    }
+    .stars { color: #ffd700; letter-spacing: 2px; }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      border: 1px solid rgba(0,212,255,0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body class="font-heebo">
+
+<!-- ══════════════════════════════════════════ -->
+<!--  TOP BAR                                  -->
+<!-- ══════════════════════════════════════════ -->
+<div style="background:linear-gradient(90deg,var(--cyan),var(--green));padding:10px;text-align:center;position:sticky;top:0;z-index:999;">
+  <span style="color:#07070f;font-weight:900;font-size:14px;">
+    🔥 מחיר השקה ₪97 בלבד — נשארו
+    <span id="spotsLeft" style="font-family:'Space Mono',monospace;">23</span>
+    מקומות!
+  </span>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  NAV                                      -->
+<!-- ══════════════════════════════════════════ -->
+<nav style="position:sticky;top:36px;z-index:100;backdrop-filter:blur(20px);border-bottom:1px solid var(--border);background:rgba(7,7,15,0.85);">
+  <div style="max-width:900px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-family:'Space Mono',monospace;font-weight:700;font-size:18px;color:var(--cyan);">PROMPT<span style="color:var(--green);">BOSS</span></span>
+    <button onclick="document.getElementById('leadForm').scrollIntoView({behavior:'smooth'})"
+      style="background:var(--cyan);color:#07070f;font-weight:900;font-size:14px;padding:10px 22px;border-radius:8px;border:none;cursor:pointer;">
+      קנה עכשיו →
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  HERO                                     -->
+<!-- ══════════════════════════════════════════ -->
+<section class="hero-grid" style="position:relative;overflow:hidden;padding:80px 24px 100px;">
+  <div class="hero-glow"></div>
+
+  <div style="max-width:860px;margin:0 auto;text-align:center;position:relative;z-index:1;">
+
+    <!-- Live indicator -->
+    <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:30px;padding:8px 18px;margin-bottom:32px;">
+      <span class="pulse-dot"></span>
+      <span style="font-size:13px;color:var(--green);font-weight:700;">LIVE · 247 איש קנו השבוע</span>
+    </div>
+
+    <!-- Headline Hebrew -->
+    <h1 style="font-size:clamp(36px,7vw,72px);font-weight:900;line-height:1.1;margin-bottom:16px;">
+      אתה משתמש ב-AI?<br/>
+      <span style="background:linear-gradient(135deg,var(--cyan),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">אתה עדיין לא מרוויח ממנו.</span>
+    </h1>
+
+    <!-- Sub Hebrew -->
+    <p style="font-size:clamp(18px,3vw,24px);color:#a0a0c0;line-height:1.6;margin-bottom:8px;max-width:620px;margin-inline:auto;">
+      100+ פרומפטים מוכנים שיחסכו לך <strong style="color:var(--text);">10+ שעות בשבוע</strong> ויכפילו את ההכנסה שלך בתוך 30 יום — <em>מובטח.</em>
+    </p>
+
+    <!-- Sub English -->
+    <p style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:1px;margin-bottom:44px;">
+      THE AI PRODUCTIVITY SYSTEM THAT WORKS WHILE YOU SLEEP
+    </p>
+
+    <!-- Countdown -->
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:48px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:13px;color:var(--muted);">המחיר עולה ב:</span>
+      <div style="display:flex;gap:8px;">
+        <div class="countdown-box">
+          <div id="cH" style="font-family:'Space Mono';font-size:24px;font-weight:700;color:var(--cyan);">23</div>
+          <div style="font-size:10px;color:var(--muted);">שעות</div>
+        </div>
+        <div class="countdown-box">
+          <div id="cM" style="font-family:'Space Mono';font-size:24px;font-weight:700;color:var(--cyan);">47</div>
+          <div style="font-size:10px;color:var(--muted);">דקות</div>
+        </div>
+        <div class="countdown-box">
+          <div id="cS" style="font-family:'Space Mono';font-size:24px;font-weight:700;color:var(--cyan);">00</div>
+          <div style="font-size:10px;color:var(--muted);">שניות</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <button onclick="document.getElementById('leadForm').scrollIntoView({behavior:'smooth'})"
+      class="cta-btn" style="max-width:380px;">
+      רוצה את זה — תן לי גישה ₪97 →
+    </button>
+    <p style="margin-top:14px;font-size:13px;color:var(--muted);">✓ גישה מיידית &nbsp;✓ ערבות 30 יום &nbsp;✓ עברית + אנגלית</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  TICKER                                   -->
+<!-- ══════════════════════════════════════════ -->
+<div style="overflow:hidden;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:12px 0;background:var(--card);">
+  <div class="ticker-track" style="color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;">
+    <span>✦ חסכון של 10 שעות בשבוע</span>
+    <span>✦ 100+ פרומפטים מוכנים</span>
+    <span>✦ עברית ואנגלית</span>
+    <span>✦ גישה לכל החיים</span>
+    <span>✦ עדכונים חינם</span>
+    <span>✦ AI FOR BUSINESS</span>
+    <span>✦ PROMPT ENGINEERING</span>
+    <span>✦ AUTOMATION TEMPLATES</span>
+    <!-- duplicate for seamless loop -->
+    <span>✦ חסכון של 10 שעות בשבוע</span>
+    <span>✦ 100+ פרומפטים מוכנים</span>
+    <span>✦ עברית ואנגלית</span>
+    <span>✦ גישה לכל החיים</span>
+    <span>✦ עדכונים חינם</span>
+    <span>✦ AI FOR BUSINESS</span>
+    <span>✦ PROMPT ENGINEERING</span>
+    <span>✦ AUTOMATION TEMPLATES</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  PROBLEM SECTION                          -->
+<!-- ══════════════════════════════════════════ -->
+<section style="padding:80px 24px;" class="fade-up">
+  <div style="max-width:800px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:48px;">
+      <span class="section-label">// THE PROBLEM</span>
+      <h2 style="font-size:clamp(28px,5vw,48px);font-weight:900;margin-bottom:20px;">
+        אתה משתמש ב-ChatGPT יום יום.<br/>
+        <span style="color:var(--muted);">אבל עדיין מרגיש שמשהו חסר.</span>
+      </h2>
+    </div>
+
+    <div style="display:grid;gap:16px;">
+      <div class="feature-card" style="display:flex;align-items:flex-start;gap:16px;">
+        <span style="font-size:28px;flex-shrink:0;">😤</span>
+        <div>
+          <strong>שאלת שאלה, קיבלת תשובה גנרית</strong>
+          <p style="color:var(--muted);margin-top:6px;font-size:15px;">הBBC תמיד כותב בצורה מה-מה-מה. אתה יודע שAI יכול יותר — אבל לא יודע איך לשאול נכון.</p>
+        </div>
+      </div>
+      <div class="feature-card" style="display:flex;align-items:flex-start;gap:16px;">
+        <span style="font-size:28px;flex-shrink:0;">⏰</span>
+        <div>
+          <strong>בזבזת שעות על תוצאות בינוניות</strong>
+          <p style="color:var(--muted);margin-top:6px;font-size:15px;">כתבת פרומפט, ניסחת מחדש, ניסית שוב. בסוף עשית את זה לבד. הAI אמור לחסוך זמן — לא לבזבז אותו.</p>
+        </div>
+      </div>
+      <div class="feature-card" style="display:flex;align-items:flex-start;gap:16px;">
+        <span style="font-size:28px;flex-shrink:0;">💸</span>
+        <div>
+          <strong>הרגשת שהמתחרים שלך קופצים קדימה</strong>
+          <p style="color:var(--muted);margin-top:6px;font-size:15px;">הם מוציאים תוכן מהיר יותר, מייצרים יותר לידים, עובדים פחות. ואתה? עדיין מנסה להבין "מה הפרומפט הנכון".</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  PRODUCT / SOLUTION                       -->
+<!-- ══════════════════════════════════════════ -->
+<section style="padding:80px 24px;background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);" class="fade-up">
+  <div style="max-width:860px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:56px;">
+      <span class="section-label">// THE SOLUTION</span>
+      <div style="display:inline-block;font-family:'Space Mono',monospace;font-size:38px;font-weight:700;color:var(--cyan);margin-bottom:8px;">PROMPT BOSS</div>
+      <h2 style="font-size:clamp(24px,4vw,40px);font-weight:900;margin-bottom:16px;">
+        המדריך שאנשי AI מקצועיים<br/>
+        <span style="color:var(--green);">לא רוצים שתדע עליו.</span>
+      </h2>
+      <p style="color:#a0a0c0;font-size:17px;max-width:560px;margin:0 auto;">מדריך דיגיטלי + 100+ פרומפטים מוכנים בעברית ואנגלית — לפרילנסרים, יזמים ובעלי עסקים קטנים.</p>
+    </div>
+
+    <!-- What's inside -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;">
+
+      <div class="grad-border">
+        <div style="background:var(--card);border-radius:15px;padding:24px;">
+          <div style="font-size:36px;margin-bottom:12px;">📦</div>
+          <h3 style="font-weight:900;margin-bottom:8px;color:var(--cyan);">MODULE 1</h3>
+          <p style="font-weight:700;margin-bottom:8px;">100+ פרומפטים מוכנים</p>
+          <p style="color:var(--muted);font-size:14px;">מסווגים לפי תחום: שיווק, מכירות, כתיבה, פיננסים, HR — תעתיק, הדבק, תרוויח.</p>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div style="font-size:36px;margin-bottom:12px;">⚡</div>
+        <h3 style="font-weight:900;margin-bottom:8px;color:var(--green);">MODULE 2</h3>
+        <p style="font-weight:700;margin-bottom:8px;">10 תבניות אוטומציה</p>
+        <p style="color:var(--muted);font-size:14px;">זרימות עבודה אוטומטיות שעובדות בזמן שאתה ישן. שווה 200+ שעות בשנה.</p>
+      </div>
+
+      <div class="feature-card">
+        <div style="font-size:36px;margin-bottom:12px;">🎯</div>
+        <h3 style="font-weight:900;margin-bottom:8px;color:var(--cyan);">MODULE 3</h3>
+        <p style="font-weight:700;margin-bottom:8px;">מסגרת ה-BOSS METHOD</p>
+        <p style="color:var(--muted);font-size:14px;">הנוסחה ל-5 שלבים לכתיבת פרומפט מנצח — לכל שאלה, לכל כלי AI.</p>
+      </div>
+
+      <div class="feature-card">
+        <div style="font-size:36px;margin-bottom:12px;">💰</div>
+        <h3 style="font-weight:900;margin-bottom:8px;color:var(--green);">BONUS</h3>
+        <p style="font-weight:700;margin-bottom:8px;">15 רעיונות לפסיב אינקום עם AI</p>
+        <p style="color:var(--muted);font-size:14px;">איך לבנות מקורות הכנסה נוספים באמצעות כלי AI — כבר תוך 30 יום.</p>
+      </div>
+
+    </div>
+
+    <!-- Value stack -->
+    <div style="margin-top:40px;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-radius:16px;padding:28px 24px;">
+      <h3 style="font-weight:900;margin-bottom:20px;text-align:center;color:var(--cyan);">מה שמקבלים (שווי אמיתי):</h3>
+      <div style="display:grid;gap:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>✅ 100+ פרומפטים מוכנים</span>
+          <span style="font-family:'Space Mono';color:var(--muted);text-decoration:line-through;">₪297</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>✅ 10 תבניות אוטומציה</span>
+          <span style="font-family:'Space Mono';color:var(--muted);text-decoration:line-through;">₪197</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>✅ BOSS METHOD Framework</span>
+          <span style="font-family:'Space Mono';color:var(--muted);text-decoration:line-through;">₪147</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>✅ 15 רעיונות פסיב אינקום</span>
+          <span style="font-family:'Space Mono';color:var(--muted);text-decoration:line-through;">₪97</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>✅ עדכונים לכל החיים</span>
+          <span style="font-family:'Space Mono';color:var(--muted);text-decoration:line-through;">₪49</span>
+        </div>
+        <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <strong style="font-size:18px;">סה"כ שווי:</strong>
+          <strong style="font-family:'Space Mono';font-size:22px;color:var(--muted);text-decoration:line-through;">₪787</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,255,136,0.08);padding:12px 16px;border-radius:10px;margin-top:4px;">
+          <strong style="font-size:20px;color:var(--green);">המחיר שלך היום:</strong>
+          <strong style="font-family:'Space Mono';font-size:32px;color:var(--green);">₪97</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  SOCIAL PROOF                             -->
+<!-- ══════════════════════════════════════════ -->
+<section style="padding:80px 24px;" class="fade-up">
+  <div style="max-width:860px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:48px;">
+      <span class="section-label">// RESULTS</span>
+      <h2 style="font-size:clamp(24px,4vw,40px);font-weight:900;">מה אומרים האנשים שכבר בפנים:</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;">
+
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <p style="margin:12px 0;color:#c0c0d8;font-size:15px;line-height:1.6;">"חסכתי 3 שעות ביום הראשון בלבד. הפרומפטים לשיווק שינו לי את כל שגרת העבודה."</p>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--green));display:flex;align-items:center;justify-content:center;font-weight:900;color:#07070f;">ד</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;">דנה כהן</div>
+            <div style="color:var(--muted);font-size:12px;">פרילנסרית שיווק, תל אביב</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <p style="margin:12px 0;color:#c0c0d8;font-size:15px;line-height:1.6;">"עשיתי ₪4,200 בחודש הראשון ממתן שירות AI לעסקים מקומיים. הבוס מתהודד."</p>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--green),#0099cc);display:flex;align-items:center;justify-content:center;font-weight:900;color:#07070f;">ע</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;">עמית לוי</div>
+            <div style="color:var(--muted);font-size:12px;">יזם דיגיטלי, חיפה</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <p style="margin:12px 0;color:#c0c0d8;font-size:15px;line-height:1.6;">"הייתי סקפטי. אחרי שבוע — פשוט מדהים. הAI עושה לי 80% מהעבודה."</p>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ff6b6b,var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:900;color:#07070f;">מ</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;">מיכל רוזן</div>
+            <div style="color:var(--muted);font-size:12px;">בעלת בוטיק, ירושלים</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Progress -->
+    <div style="margin-top:40px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-weight:700;">🔥 מקומות שנמכרו (מבצע השקה)</span>
+        <span style="font-family:'Space Mono';color:var(--cyan);">73 / 100</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+      <p style="color:var(--muted);font-size:13px;margin-top:10px;text-align:center;">נשארו 27 מקומות במחיר ₪97 — לאחר מכן המחיר עולה ל-₪197</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  LEAD CAPTURE + PAYMENT FORM              -->
+<!-- ══════════════════════════════════════════ -->
+<section id="leadForm" style="padding:80px 24px;background:var(--card);border-top:1px solid var(--border);">
+  <div style="max-width:560px;margin:0 auto;">
+
+    <div style="text-align:center;margin-bottom:36px;">
+      <span class="section-label">// GET ACCESS NOW</span>
+      <h2 style="font-size:clamp(26px,4vw,42px);font-weight:900;margin-bottom:12px;">
+        מוכן להתחיל לרוויח<br/>
+        <span style="color:var(--cyan);">עם AI היום?</span>
+      </h2>
+      <p style="color:#a0a0c0;">מלא את הפרטים ותקבל גישה מיידית — ישירות למייל.</p>
+    </div>
+
+    <!-- STEP 1: Lead Capture -->
+    <div id="step1">
+      <div class="grad-border">
+        <div style="background:var(--card);border-radius:15px;padding:28px 24px;">
+          <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:2px;margin-bottom:20px;">שלב 1 מתוך 2 — פרטים אישיים</p>
+          <div style="display:grid;gap:14px;">
+            <input id="fname" class="form-input" type="text" placeholder="השם המלא שלך" />
+            <input id="femail" class="form-input" type="email" placeholder="כתובת המייל שלך" />
+            <button onclick="goToPayment()" class="cta-btn">
+              המשך לתשלום בטוח ←
+            </button>
+          </div>
+          <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:14px;">🔒 SSL מוצפן · לא נשלח ספאם לעולם</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Payment -->
+    <div id="step2" style="display:none;">
+      <div class="grad-border">
+        <div style="background:var(--card);border-radius:15px;padding:28px 24px;">
+          <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--green);letter-spacing:2px;margin-bottom:8px;">שלב 2 מתוך 2 — תשלום מאובטח</p>
+          <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;">
+            <span style="font-weight:700;">PROMPT BOSS — גישה מלאה</span>
+            <span style="font-family:'Space Mono';font-weight:700;color:var(--green);font-size:22px;">₪97</span>
+          </div>
+
+          <!-- PayPal Button -->
+          <div id="paypal-button-container"></div>
+
+          <!-- Fallback / Demo button -->
+          <button id="demoPayBtn" onclick="simulatePayment()" class="cta-btn" style="background:linear-gradient(135deg,#f4a732,#e8820c);margin-top:8px;">
+            💳 לחץ כאן לתשלום (PayPal / כרטיס)
+          </button>
+
+          <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:14px;">
+            🔒 תשלום מאובטח · ✅ ערבות 30 יום · ↩️ החזר מלא ללא שאלות
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  FAQ                                      -->
+<!-- ══════════════════════════════════════════ -->
+<section style="padding:80px 24px;" class="fade-up">
+  <div style="max-width:720px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:40px;">
+      <span class="section-label">// FAQ</span>
+      <h2 style="font-size:clamp(24px,4vw,36px);font-weight:900;">שאלות נפוצות</h2>
+    </div>
+    <div style="display:grid;gap:12px;" id="faqList">
+      <div class="feature-card" onclick="toggleFaq(this)" style="cursor:pointer;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <strong>האם זה מתאים לי אם אני לא טכנולוגי?</strong>
+          <span style="color:var(--cyan);font-size:20px;transition:0.3s;" class="faq-icon">+</span>
+        </div>
+        <div class="faq-ans" style="display:none;margin-top:14px;color:var(--muted);font-size:15px;line-height:1.6;">בהחלט! המדריך נכתב לאנשים שמשתמשים ב-ChatGPT אבל לא יודעים "לסחוט" ממנו את המקסימום. ללא קידוד, ללא ידע טכני.</div>
+      </div>
+      <div class="feature-card" onclick="toggleFaq(this)" style="cursor:pointer;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <strong>מתי אקבל גישה אחרי הרכישה?</strong>
+          <span style="color:var(--cyan);font-size:20px;" class="faq-icon">+</span>
+        </div>
+        <div class="faq-ans" style="display:none;margin-top:14px;color:var(--muted);font-size:15px;line-height:1.6;">מיידית! אחרי התשלום תקבל מייל עם לינק הורדה ישיר תוך פחות מדקה.</div>
+      </div>
+      <div class="feature-card" onclick="toggleFaq(this)" style="cursor:pointer;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <strong>מה קורה אם זה לא מתאים לי?</strong>
+          <span style="color:var(--cyan);font-size:20px;" class="faq-icon">+</span>
+        </div>
+        <div class="faq-ans" style="display:none;margin-top:14px;color:var(--muted);font-size:15px;line-height:1.6;">ערבות 30 יום מלאה — ללא שאלות, ללא בירוקרטיה. שלח מייל ותקבל החזר מלא.</div>
+      </div>
+      <div class="feature-card" onclick="toggleFaq(this)" style="cursor:pointer;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <strong>האם זה עובד גם עם Claude, Gemini, וכלים אחרים?</strong>
+          <span style="color:var(--cyan);font-size:20px;" class="faq-icon">+</span>
+        </div>
+        <div class="faq-ans" style="display:none;margin-top:14px;color:var(--muted);font-size:15px;line-height:1.6;">כן! הפרומפטים והשיטה עובדים עם כל כלי AI — ChatGPT, Claude, Gemini, Copilot ואחרים.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  FINAL CTA                                -->
+<!-- ══════════════════════════════════════════ -->
+<section style="padding:80px 24px;text-align:center;background:var(--card);border-top:1px solid var(--border);">
+  <div style="max-width:620px;margin:0 auto;">
+    <h2 style="font-size:clamp(28px,5vw,52px);font-weight:900;margin-bottom:20px;line-height:1.1;">
+      עוד חודש ממהיום<br/>
+      <span style="color:var(--cyan);">תרצה שהתחלת היום.</span>
+    </h2>
+    <p style="color:#a0a0c0;margin-bottom:36px;font-size:17px;">פרילנסרים ויזמים שמשתמשים ב-PROMPT BOSS מדווחים על חיסכון ממוצע של <strong style="color:var(--text);">43 שעות בחודש</strong> ועלייה של <strong style="color:var(--text);">67%</strong> בפרודוקטיביות.</p>
+    <button onclick="document.getElementById('leadForm').scrollIntoView({behavior:'smooth'})" class="cta-btn" style="max-width:380px;font-size:22px;padding:22px 36px;">
+      רוצה גישה עכשיו — ₪97 →
+    </button>
+    <p style="margin-top:16px;color:var(--muted);font-size:13px;">✓ גישה מיידית · ✓ ערבות 30 יום · ✓ מחיר מובטח</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  FOOTER                                   -->
+<!-- ══════════════════════════════════════════ -->
+<footer style="padding:32px 24px;text-align:center;border-top:1px solid var(--border);">
+  <div style="font-family:'Space Mono',monospace;font-weight:700;color:var(--cyan);font-size:16px;margin-bottom:12px;">PROMPT<span style="color:var(--green);">BOSS</span></div>
+  <p style="color:var(--muted);font-size:12px;">© 2026 PromptBoss · כל הזכויות שמורות · <a href="mailto:hello@promptboss.co.il" style="color:var(--cyan);">hello@promptboss.co.il</a></p>
+  <p style="color:var(--muted);font-size:11px;margin-top:8px;">תוצאות עשויות להשתנות · הביצועים המוצגים אינם ערובה · המוצר מוגן בזכויות יוצרים</p>
+</footer>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  UPSELL MODAL                             -->
+<!-- ══════════════════════════════════════════ -->
+<div id="upsellModal">
+  <div class="modal-box">
+    <!-- Close -->
+    <button onclick="closeUpsell()" style="position:absolute;top:16px;left:16px;background:transparent;border:none;color:var(--muted);font-size:24px;cursor:pointer;">✕</button>
+
+    <!-- Badge -->
+    <div style="text-align:center;margin-bottom:20px;">
+      <span style="background:linear-gradient(135deg,var(--green),#00cc66);color:#07070f;font-weight:900;font-size:12px;padding:6px 16px;border-radius:20px;font-family:'Space Mono';">⚡ WAIT — SPECIAL ONE-TIME OFFER</span>
+    </div>
+
+    <h2 style="font-size:clamp(22px,4vw,32px);font-weight:900;text-align:center;margin-bottom:12px;line-height:1.2;">
+      רגע לפני שתיכנס —<br/>
+      <span style="color:var(--green);">הכפל את התוצאות שלך!</span>
+    </h2>
+
+    <p style="color:#a0a0c0;text-align:center;font-size:15px;margin-bottom:20px;line-height:1.6;">
+      הוסף את <strong style="color:var(--text);">VIP AUTOMATION PACK</strong> — 50 תבניות אוטומציה מתקדמות לעסק שעובד לבד. שווה ₪497.
+    </p>
+
+    <div style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:12px;padding:16px;margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-weight:900;font-size:16px;">VIP AUTOMATION PACK</div>
+          <div style="color:var(--muted);font-size:13px;margin-top:4px;">50 תבניות · Notion + Zapier + Make.com</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="color:var(--muted);text-decoration:line-through;font-size:14px;font-family:'Space Mono';">₪197</div>
+          <div style="color:var(--green);font-family:'Space Mono';font-weight:700;font-size:28px;">₪47</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;gap:10px;">
+      <button onclick="acceptUpsell()" class="cta-btn" style="background:linear-gradient(135deg,var(--green),#00cc66);font-size:17px;">
+        ✅ כן! תוסיף לי את זה ב-₪47
+      </button>
+      <button onclick="closeUpsell()" style="background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Heebo';font-size:14px;padding:12px;border-radius:10px;cursor:pointer;">
+        לא תודה, אני מוותר על ₪450 חיסכון
+      </button>
+    </div>
+
+    <p style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;">⏱ הצעה זו תפוג בעוד <span id="upsellTimer" style="color:var(--green);font-family:'Space Mono';">09:59</span></p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  SUCCESS TOAST                            -->
+<!-- ══════════════════════════════════════════ -->
+<div id="successToast" style="display:none;position:fixed;bottom:24px;right:24px;z-index:2000;background:linear-gradient(135deg,var(--green),#00cc66);color:#07070f;font-weight:900;padding:18px 24px;border-radius:14px;font-size:15px;animation:slideIn 0.4s ease;">
+  🎉 ברוך הבא ל-PROMPT BOSS! בדוק את המייל שלך.
+</div>
+
+<style>
+  @keyframes slideIn { from { transform: translateY(80px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+
+<!-- ══════════════════════════════════════════ -->
+<!--  SCRIPTS                                  -->
+<!-- ══════════════════════════════════════════ -->
+<script>
+// ── COUNTDOWN TIMER ──────────────────────────
+(function() {
+  let totalSec = 23 * 3600 + 47 * 60;
+  const h = document.getElementById('cH');
+  const m = document.getElementById('cM');
+  const s = document.getElementById('cS');
+  function tick() {
+    if (totalSec <= 0) return;
+    totalSec--;
+    const hh = Math.floor(totalSec / 3600);
+    const mm = Math.floor((totalSec % 3600) / 60);
+    const ss = totalSec % 60;
+    h.textContent = String(hh).padStart(2, '0');
+    m.textContent = String(mm).padStart(2, '0');
+    s.textContent = String(ss).padStart(2, '0');
+  }
+  setInterval(tick, 1000);
+})();
+
+// ── SPOTS COUNTER ────────────────────────────
+(function() {
+  let spots = 23;
+  setInterval(() => {
+    if (spots > 5 && Math.random() < 0.15) {
+      spots--;
+      document.getElementById('spotsLeft').textContent = spots;
+    }
+  }, 18000);
+})();
+
+// ── SCROLL FADE IN ───────────────────────────
+const fadeEls = document.querySelectorAll('.fade-up');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+fadeEls.forEach(el => obs.observe(el));
+
+// ── LEAD FORM FLOW ───────────────────────────
+function goToPayment() {
+  const name = document.getElementById('fname').value.trim();
+  const email = document.getElementById('femail').value.trim();
+  if (!name || !email.includes('@')) {
+    alert('נא למלא שם ומייל תקין 👆');
+    return;
+  }
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+  // Scroll smoothly to payment
+  document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
+  // Initialize PayPal button
+  initPayPal();
+}
+
+// ── PAYPAL INTEGRATION ───────────────────────
+function initPayPal() {
+  if (typeof paypal !== 'undefined') {
+    paypal.Buttons({
+      style: { layout: 'vertical', color: 'gold', label: 'pay', height: 50 },
+      createOrder: function(data, actions) {
+        return actions.order.create({
+          purchase_units: [{
+            description: 'PROMPT BOSS – AI Productivity System',
+            amount: { currency_code: 'ILS', value: '97.00' }
+          }]
+        });
+      },
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function() {
+          simulatePayment();
+        });
+      },
+      onError: function(err) { console.error('PayPal error:', err); }
+    }).render('#paypal-button-container');
+    document.getElementById('demoPayBtn').style.display = 'none';
+  }
+}
+
+// ── PAYMENT SUCCESS + UPSELL ─────────────────
+function simulatePayment() {
+  document.getElementById('upsellModal').classList.add('active');
+  startUpsellTimer();
+}
+
+// ── UPSELL TIMER ─────────────────────────────
+let upsellSec = 599;
+let upsellInterval;
+function startUpsellTimer() {
+  upsellInterval = setInterval(() => {
+    upsellSec--;
+    const mm = Math.floor(upsellSec / 60);
+    const ss = upsellSec % 60;
+    const el = document.getElementById('upsellTimer');
+    if (el) el.textContent = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+    if (upsellSec <= 0) { clearInterval(upsellInterval); closeUpsell(); }
+  }, 1000);
+}
+
+function acceptUpsell() {
+  clearInterval(upsellInterval);
+  document.getElementById('upsellModal').classList.remove('active');
+  showToast('🔥 VIP Pack הוסף! בדוק את המייל שלך לפרטים.');
+}
+
+function closeUpsell() {
+  clearInterval(upsellInterval);
+  document.getElementById('upsellModal').classList.remove('active');
+  showToast('🎉 ברוך הבא ל-PROMPT BOSS! בדוק את המייל שלך.');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('successToast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 5000);
+}
+
+// ── FAQ TOGGLE ───────────────────────────────
+function toggleFaq(card) {
+  const ans = card.querySelector('.faq-ans');
+  const icon = card.querySelector('.faq-icon');
+  const isOpen = ans.style.display !== 'none';
+  ans.style.display = isOpen ? 'none' : 'block';
+  icon.textContent = isOpen ? '+' : '−';
+}
+</script>
+
+<!-- PayPal SDK — replace YOUR_CLIENT_ID with your real PayPal Client ID -->
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=ILS&locale=he_IL" onload="console.log('PayPal SDK loaded')" onerror="console.log('PayPal SDK not loaded — using demo mode')"></script>
+
+</body>
+</html>
